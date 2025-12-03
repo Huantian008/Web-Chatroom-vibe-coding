@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A premium real-time chat experience.">
+    <title>Lumina Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body>
+    <div id="app" v-cloak>
+        <!-- Background Elements -->
+        <div class="bg-orb orb-1"></div>
+        <div class="bg-orb orb-2"></div>
+        <div class="bg-grid"></div>
+
+        <!-- Login/Register Screen -->
+        <transition name="fade" mode="out-in">
+            <div v-if="!isLoggedIn" class="login-view" key="login">
+                <div class="login-card glass-panel">
+                    <div class="brand-header">
+                        <div class="logo-container">
+                            <i class="ph-fill ph-chat-circle-dots"></i>
+                        </div>
+                        <h1>Lumina Chat</h1>
+                        <p>Experience the future of conversation</p>
+                    </div>
+
+                    <!-- Tab Switcher -->
+                    <div class="auth-tabs">
+                        <button
+                            class="auth-tab"
+                            :class="{ active: authMode === 'login' }"
+                            @click="authMode = 'login'">
+                            登录
+                        </button>
+                        <button
+                            class="auth-tab"
+                            :class="{ active: authMode === 'register' }"
+                            @click="authMode = 'register'">
+                            注册
+                        </button>
+                    </div>
+
+                    <!-- Login Form -->
+                    <form v-if="authMode === 'login'" @submit.prevent="handleLogin" class="login-form">
+                        <div class="input-wrapper">
+                            <i class="ph ph-user input-icon"></i>
+                            <input
+                                type="text"
+                                v-model="username"
+                                placeholder="用户名"
+                                required
+                                minlength="2"
+                                maxlength="20"
+                                autocomplete="username">
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="ph ph-lock input-icon"></i>
+                            <input
+                                type="password"
+                                v-model="password"
+                                placeholder="密码"
+                                required
+                                minlength="6"
+                                autocomplete="current-password">
+                        </div>
+                        <div v-if="errorMessage" class="error-message">
+                            {{ errorMessage }}
+                        </div>
+                        <button type="submit" class="primary-btn" :disabled="loading">
+                            <span v-if="!loading">登录</span>
+                            <span v-else>登录中...</span>
+                            <i v-if="!loading" class="ph-bold ph-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form v-if="authMode === 'register'" @submit.prevent="handleRegister" class="login-form">
+                        <div class="input-wrapper">
+                            <i class="ph ph-user input-icon"></i>
+                            <input
+                                type="text"
+                                v-model="username"
+                                placeholder="用户名 (2-20个字符)"
+                                required
+                                minlength="2"
+                                maxlength="20"
+                                autocomplete="username">
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="ph ph-lock input-icon"></i>
+                            <input
+                                type="password"
+                                v-model="password"
+                                placeholder="密码 (至少6个字符)"
+                                required
+                                minlength="6"
+                                autocomplete="new-password">
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="ph ph-lock input-icon"></i>
+                            <input
+                                type="password"
+                                v-model="confirmPassword"
+                                placeholder="确认密码"
+                                required
+                                minlength="6"
+                                autocomplete="new-password">
+                        </div>
+                        <div v-if="errorMessage" class="error-message">
+                            {{ errorMessage }}
+                        </div>
+                        <button type="submit" class="primary-btn" :disabled="loading">
+                            <span v-if="!loading">注册</span>
+                            <span v-else>注册中...</span>
+                            <i v-if="!loading" class="ph-bold ph-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Chat Screen -->
+            <div v-else class="chat-view" key="chat">
+                <div class="chat-layout glass-panel">
+                    <!-- Sidebar -->
+                    <aside class="sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
+                        <div class="sidebar-header">
+                            <div class="app-brand">
+                                <i class="ph-fill ph-chat-circle-dots"></i>
+                                <span>Lumina</span>
+                            </div>
+                            <button class="icon-btn mobile-close" @click="toggleSidebar">
+                                <i class="ph ph-x"></i>
+                            </button>
+                        </div>
+
+                        <div class="online-users-section">
+                            <div class="section-title">
+                                <span>在线用户</span>
+                                <span class="badge">{{ onlineUsers.length }}</span>
+                            </div>
+                            <div class="user-list">
+                                <div v-for="user in onlineUsers" :key="user" class="user-card"
+                                    :class="{ 'is-me': user === username }">
+                                    <div class="avatar" :style="{ background: getAvatarColor(user) }">
+                                        {{ user.charAt(0).toUpperCase() }}
+                                        <div class="status-indicator online"></div>
+                                    </div>
+                                    <div class="user-info">
+                                        <span class="name">{{ user }}</span>
+                                        <span class="status-text">{{ user === username ? '你' : '在线' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-footer">
+                            <button @click="logout" class="logout-btn">
+                                <i class="ph ph-sign-out"></i>
+                                <span>退出登录</span>
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- Main Chat Area -->
+                    <main class="chat-main">
+                        <header class="chat-header">
+                            <button class="icon-btn mobile-menu" @click="toggleSidebar">
+                                <i class="ph ph-list"></i>
+                            </button>
+                            <div class="room-info">
+                                <h2>聊天大厅</h2>
+                                <span class="status-subtitle">{{ onlineUsers.length }} 人在线</span>
+                            </div>
+                            <div class="header-actions">
+                                <div class="connection-status" :class="{ 'connected': isConnected }">
+                                    <div class="status-dot"></div>
+                                    <span>{{ isConnected ? '已连接' : '重新连接中...' }}</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="messages-scroll-area" ref="messagesContainer">
+                            <div class="messages-wrapper">
+                                <transition-group name="message-anim">
+                                    <div v-for="msg in messages" :key="msg.id" class="message-row" :class="{
+                                            'message-own': msg.username === username,
+                                            'message-system': msg.type === 'system'
+                                        }">
+                                        <div v-if="msg.type === 'system'" class="system-badge">
+                                            <span>{{ msg.message }}</span>
+                                        </div>
+
+                                        <template v-else>
+                                            <div class="avatar" :style="{ background: getAvatarColor(msg.username) }">
+                                                {{ msg.username.charAt(0).toUpperCase() }}
+                                            </div>
+                                            <div class="message-bubble">
+                                                <div class="message-meta">
+                                                    <span class="sender-name">{{ msg.username }}</span>
+                                                    <span class="timestamp">{{ formatTime(msg.timestamp) }}</span>
+                                                </div>
+                                                <div class="message-content">
+                                                    {{ msg.message }}
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </transition-group>
+
+                                <div v-if="typingUser" class="typing-indicator-row">
+                                    <div class="typing-bubble">
+                                        <span class="typing-text">{{ typingUser }} 正在输入</span>
+                                        <div class="dots">
+                                            <span></span><span></span><span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-area">
+                            <form @submit.prevent="sendMessage" class="input-container">
+                                <input type="text" v-model="newMessage" @input="handleTyping"
+                                    placeholder="输入消息..." class="main-input">
+                                <button type="submit" class="send-fab" :disabled="!newMessage.trim()">
+                                    <i class="ph-fill ph-paper-plane-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </main>
+
+                    <!-- Mobile Overlay -->
+                    <div class="sidebar-overlay" :class="{ 'active': isSidebarOpen }" @click="toggleSidebar"></div>
+                </div>
+            </div>
+        </transition>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
