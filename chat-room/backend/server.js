@@ -225,6 +225,10 @@ io.on('connection', async (socket) => {
         const memberships = await ChannelMember.find({ userId: socket.userId })
             .populate('channelId');
 
+        const memberChannelIds = memberships
+            .filter(m => m.channelId)
+            .map(m => m.channelId._id.toString());
+
         const channels = memberships
             .filter(m => m.channelId) // Filter out null channels
             .map(m => ({
@@ -235,6 +239,13 @@ io.on('connection', async (socket) => {
                 icon: m.channelId.icon
             }));
 
+        // Channels the user is NOT in yet (for join list)
+        const availableChannels = await Channel.find({
+            _id: { $nin: memberChannelIds }
+        })
+            .sort({ isDefault: -1, name: 1 })
+            .lean();
+
         // Auto-join all user's channels as Socket.io rooms
         channels.forEach(channel => {
             socket.join(`channel:${channel.id}`);
@@ -243,6 +254,13 @@ io.on('connection', async (socket) => {
         // Send initial data to client
         socket.emit('initial-data', {
             channels,
+            availableChannels: availableChannels.map(ch => ({
+                id: ch._id.toString(),
+                name: ch.name,
+                description: ch.description,
+                isDefault: ch.isDefault,
+                icon: ch.icon
+            })),
             isAdmin,
             username: socket.username,
             userId: socket.userId

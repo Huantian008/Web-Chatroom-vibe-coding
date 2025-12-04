@@ -124,6 +124,20 @@
                                     <span>{{ channel.name }}</span>
                                 </div>
                             </div>
+
+                            <div class="section-title" v-if="availableChannels.length">
+                                <span>可加入的频道</span>
+                            </div>
+                            <div class="channel-list" v-if="availableChannels.length">
+                                <div v-for="channel in availableChannels" :key="channel.id"
+                                    class="channel-item joinable">
+                                    <div class="channel-info">
+                                        <i :class="`ph ${channel.icon}`"></i>
+                                        <span>{{ channel.name }}</span>
+                                    </div>
+                                    <button class="btn-small" @click.stop="joinChannel(channel)">加入</button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Online Users -->

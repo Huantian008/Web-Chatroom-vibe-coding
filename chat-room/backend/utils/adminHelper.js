@@ -6,7 +6,9 @@ const ADMIN_CONFIG_PATH = path.join(__dirname, '../config/admins.json');
 class AdminHelper {
     constructor() {
         this.admins = new Set();
+        this.watcher = null;
         this.loadAdmins();
+        this.watchAdminFile();
     }
 
     loadAdmins() {
@@ -31,6 +33,27 @@ class AdminHelper {
 
     reloadAdmins() {
         this.loadAdmins();
+    }
+
+    watchAdminFile() {
+        // Reload admins automatically when the config file changes
+        if (this.watcher) return;
+
+        try {
+            this.watcher = fs.watch(ADMIN_CONFIG_PATH, (eventType) => {
+                if (eventType === 'change') {
+                    console.log('🔄 Admin config changed, reloading...');
+                    this.reloadAdmins();
+                }
+            });
+
+            // Allow process to exit even if watcher is active
+            if (this.watcher?.unref) {
+                this.watcher.unref();
+            }
+        } catch (error) {
+            console.error('❌ Failed to watch admin config file:', error.message);
+        }
     }
 }
 

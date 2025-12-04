@@ -31,6 +31,7 @@ createApp({
 
             // Channel state
             channels: [],
+            availableChannels: [],
             currentChannelId: null,
             currentChannelName: '',
 
@@ -197,6 +198,7 @@ createApp({
             this.messages = [];
             this.onlineUsers = [];
             this.channels = [];
+            this.availableChannels = [];
             this.currentChannelId = null;
             this.username = '';
             this.password = '';
@@ -245,6 +247,7 @@ createApp({
             this.socket.on('initial-data', (data) => {
                 console.log('Received initial data:', data);
                 this.channels = data.channels || [];
+                this.availableChannels = data.availableChannels || [];
                 this.isAdmin = data.isAdmin || false;
 
                 // Auto-select first channel (default channel)
@@ -356,6 +359,7 @@ createApp({
                 if (!response.ok) throw new Error('Failed to load channels');
 
                 this.channels = await response.json();
+                await this.loadAvailableChannels();
 
                 // Auto-select first channel if none selected
                 if (this.channels.length > 0 && !this.currentChannelId) {
@@ -364,6 +368,22 @@ createApp({
                 }
             } catch (error) {
                 console.error('Load channels error:', error);
+            }
+        },
+
+        async loadAvailableChannels() {
+            try {
+                const response = await fetch(`${API_URL}/api/channels/available`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load available channels');
+
+                this.availableChannels = await response.json();
+            } catch (error) {
+                console.error('Load available channels error:', error);
             }
         },
 
@@ -416,6 +436,41 @@ createApp({
                 // Switch to new channel
                 if (data.channel) {
                     this.switchChannel(data.channel.id, data.channel.name);
+                }
+
+                // Update available list for other users on next load
+                await this.loadAvailableChannels();
+            } catch (error) {
+                this.errorMessage = error.message;
+                setTimeout(() => {
+                    this.errorMessage = '';
+                }, 5000);
+            }
+        },
+
+        async joinChannel(channel) {
+            if (!channel?.id) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/channels/${channel.id}/join`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`
+                    }
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || '加入频道失败');
+                }
+
+                await this.loadChannels();
+                await this.loadAvailableChannels();
+
+                const joinedChannel = this.channels.find(c => c.id === channel.id);
+                if (joinedChannel) {
+                    this.switchChannel(joinedChannel.id, joinedChannel.name);
                 }
             } catch (error) {
                 this.errorMessage = error.message;
