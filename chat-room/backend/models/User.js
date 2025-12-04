@@ -22,6 +22,28 @@ const userSchema = new mongoose.Schema({
     lastLogin: {
         type: Date,
         default: Date.now
+    },
+    role: {
+        type: String,
+        enum: ['user', 'admin'],
+        default: 'user'
+    },
+    isMuted: {
+        type: Boolean,
+        default: false
+    },
+    mutedUntil: {
+        type: Date,
+        default: null
+    },
+    mutedBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    mutedReason: {
+        type: String,
+        default: null
     }
 });
 
@@ -37,5 +59,9 @@ userSchema.pre('save', async function() {
 userSchema.methods.comparePassword = async function(candidatePassword) {
     return await bcrypt.compare(candidatePassword, this.password);
 };
+
+// Indexes for faster queries
+userSchema.index({ username: 1 });
+userSchema.index({ role: 1 });
 
 module.exports = mongoose.model('User', userSchema);

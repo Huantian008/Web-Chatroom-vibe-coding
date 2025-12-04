@@ -838,3 +838,552 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
+/* ==================== Channels Section ==================== */
+.channels-section {
+    padding: 16px 16px 24px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.channel-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.channel-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.channel-item i {
+    font-size: 18px;
+    color: var(--text-dim);
+}
+
+.channel-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+}
+
+.channel-item.active {
+    background: rgba(124, 58, 237, 0.15);
+    color: var(--text-main);
+    border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.channel-item.active i {
+    color: var(--primary-glow);
+}
+
+/* ==================== Admin Badge ==================== */
+.admin-badge {
+    color: var(--primary-glow);
+    font-size: 14px;
+    margin-left: 4px;
+    filter: drop-shadow(0 0 4px rgba(124, 58, 237, 0.6));
+}
+
+/* ==================== Admin Toggle Button ==================== */
+.admin-toggle-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(124, 58, 237, 0.1);
+    border: 1px solid rgba(124, 58, 237, 0.2);
+    border-radius: var(--radius-sm);
+    color: var(--primary-glow);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+    margin-bottom: 12px;
+}
+
+.admin-toggle-btn:hover {
+    background: rgba(124, 58, 237, 0.2);
+    border-color: rgba(124, 58, 237, 0.4);
+}
+
+/* ==================== Modal System ==================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 20px;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 700px;
+    max-height: 85vh;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-small {
+    max-width: 500px;
+}
+
+.modal-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(17, 12, 46, 0.5);
+}
+
+.modal-header h3 {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-main);
+}
+
+.modal-header i {
+    color: var(--primary-glow);
+    font-size: 24px;
+}
+
+.modal-body {
+    padding: 32px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+/* ==================== Admin Panel Sections ==================== */
+.admin-section {
+    margin-bottom: 32px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.admin-section:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.admin-section h4 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-main);
+}
+
+/* Word Filter Input */
+.filter-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.filter-input-group input {
+    flex: 1;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 14px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.filter-input-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* Filter List */
+.filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.filter-item:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.filter-item span {
+    color: var(--text-main);
+    font-size: 14px;
+}
+
+/* User Management */
+.user-management-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user-mgmt-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+}
+
+.user-mgmt-item:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.user-mgmt-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-mgmt-name {
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.mute-badge {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* ==================== Buttons ==================== */
+.btn-small {
+    padding: 8px 16px;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-small:hover {
+    background: var(--primary-glow);
+    transform: translateY(-1px);
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-glow));
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
+}
+
+.btn-secondary {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-toggle {
+    width: 100%;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.btn-toggle:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+}
+
+.btn-toggle.active {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: var(--danger);
+}
+
+.btn-toggle.active:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-icon-danger {
+    background: transparent;
+    border: none;
+    color: var(--danger);
+    padding: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.btn-icon-danger:hover {
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:hover {
+    background: rgba(239, 68, 68, 0.25);
+}
+
+.btn-success {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+    background: rgba(16, 185, 129, 0.25);
+}
+
+/* ==================== Channel Form ==================== */
+.channel-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-group input {
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    color: var(--text-main);
+    font-size: 15px;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: rgba(0, 0, 0, 0.5);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+/* ==================== AI Message Styling ==================== */
+.message-ai {
+    align-self: flex-start;
+}
+
+.message-ai .avatar {
+    background: linear-gradient(135deg, #06b6d4, #0891b2) !important;
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
+}
+
+.message-ai .sender-name {
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ai-tag {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 6px rgba(6, 182, 212, 0.3);
+}
+
+.message-ai .message-content {
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    box-shadow: 0 2px 8px rgba(6, 182, 212, 0.15);
+}
+
+/* ==================== Mute Notification ==================== */
+.mute-notification {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.15));
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: var(--radius-sm);
+    padding: 14px 20px;
+    margin: 16px 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--danger);
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.mute-notification i {
+    font-size: 20px;
+}
+
+/* ==================== Input Hint ==================== */
+.input-hint {
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--accent);
+}
+
+.input-hint i {
+    font-size: 16px;
+}
+
+.input-hint code {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-main);
+}
+
+/* ==================== Additional Animations ==================== */
+.slide-down-enter-active,
+.slide-down-leave-active {
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    max-height: 100px;
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+/* ==================== Mobile Responsive Updates ==================== */
+@media (max-width: 900px) {
+    .modal-content {
+        max-width: 100%;
+        max-height: 95vh;
+        border-radius: var(--radius-md);
+    }
+
+    .modal-header {
+        padding: 20px;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .mute-notification {
+        margin: 12px 16px 0;
+        padding: 12px 16px;
+    }
+
+    .channels-section {
+        padding: 12px 12px 20px;
+    }
+}

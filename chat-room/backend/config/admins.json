@@ -1,0 +1,7 @@
+{
+    "admins": [
+        "admin",
+        "Ruence"
+    ],
+    "description": "List of usernames with admin privileges. Add your admin usernames here."
+}
