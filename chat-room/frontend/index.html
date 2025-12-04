@@ -1,378 +1,195 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A premium real-time multi-channel chat experience with AI.">
-    <title>Lumina Chat - Multi-Channel</title>
+    <meta name="description" content="多频道实时聊天室">
+    <title>Lumina Chat</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
-
 <body>
     <div id="app" v-cloak>
-        <!-- Background Elements -->
-        <div class="bg-orb orb-1"></div>
-        <div class="bg-orb orb-2"></div>
-        <div class="bg-grid"></div>
-
-        <!-- Login/Register Screen -->
         <transition name="fade" mode="out-in">
-            <div v-if="!isLoggedIn" class="login-view" key="login">
-                <div class="login-card glass-panel">
-                    <div class="brand-header">
-                        <div class="logo-container">
-                            <i class="ph-fill ph-chat-circle-dots"></i>
+            <div v-if="!isLoggedIn" class="auth-screen" key="auth">
+                <div class="auth-card">
+                    <div class="brand-row">
+                        <div class="brand-icon">LC</div>
+                        <div>
+                            <div class="brand-title">Lumina Chat</div>
+                            <p class="brand-subtitle">登录或注册后开启对话</p>
                         </div>
-                        <h1>Lumina Chat</h1>
-                        <p>Multi-channel chat with AI</p>
                     </div>
 
-                    <!-- Tab Switcher -->
                     <div class="auth-tabs">
-                        <button class="auth-tab" :class="{ active: authMode === 'login' }" @click="authMode = 'login'">
-                            登录
-                        </button>
-                        <button class="auth-tab" :class="{ active: authMode === 'register' }"
-                            @click="authMode = 'register'">
-                            注册
-                        </button>
+                        <button class="auth-tab" :class="{ active: authMode === 'login' }" @click="authMode = 'login'">登录</button>
+                        <button class="auth-tab" :class="{ active: authMode === 'register' }" @click="authMode = 'register'">注册</button>
                     </div>
 
-                    <!-- Login Form -->
-                    <form v-if="authMode === 'login'" @submit.prevent="handleLogin" class="login-form">
-                        <div class="input-wrapper">
-                            <i class="ph ph-user input-icon"></i>
-                            <input type="text" v-model="username" placeholder="用户名" required minlength="2"
-                                maxlength="20" autocomplete="username">
-                        </div>
-                        <div class="input-wrapper">
-                            <i class="ph ph-lock input-icon"></i>
-                            <input type="password" v-model="password" placeholder="密码" required minlength="6"
-                                autocomplete="current-password">
-                        </div>
-                        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-                        <button type="submit" class="primary-btn" :disabled="loading">
-                            <span v-if="!loading">登录</span>
-                            <span v-else>登录中...</span>
-                            <i v-if="!loading" class="ph-bold ph-arrow-right"></i>
-                        </button>
+                    <form v-if="authMode === 'login'" class="auth-form" @submit.prevent="handleLogin">
+                        <label class="input-label">用户名</label>
+                        <input class="text-input" type="text" v-model="username" required minlength="2" maxlength="20" autocomplete="username">
+
+                        <label class="input-label">密码</label>
+                        <input class="text-input" type="password" v-model="password" required minlength="6" autocomplete="current-password">
+
+                        <div class="error" v-if="errorMessage">{{ errorMessage }}</div>
+                        <button type="submit" class="primary-btn" :disabled="loading">{{ loading ? '登录中...' : '登录' }}</button>
                     </form>
 
-                    <!-- Register Form -->
-                    <form v-if="authMode === 'register'" @submit.prevent="handleRegister" class="login-form">
-                        <div class="input-wrapper">
-                            <i class="ph ph-user input-icon"></i>
-                            <input type="text" v-model="username" placeholder="用户名 (2-20个字符)" required minlength="2"
-                                maxlength="20" autocomplete="username">
-                        </div>
-                        <div class="input-wrapper">
-                            <i class="ph ph-lock input-icon"></i>
-                            <input type="password" v-model="password" placeholder="密码 (至少6个字符)" required minlength="6"
-                                autocomplete="new-password">
-                        </div>
-                        <div class="input-wrapper">
-                            <i class="ph ph-lock input-icon"></i>
-                            <input type="password" v-model="confirmPassword" placeholder="确认密码" required minlength="6"
-                                autocomplete="new-password">
-                        </div>
-                        <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-                        <button type="submit" class="primary-btn" :disabled="loading">
-                            <span v-if="!loading">注册</span>
-                            <span v-else>注册中...</span>
-                            <i v-if="!loading" class="ph-bold ph-arrow-right"></i>
-                        </button>
+                    <form v-else class="auth-form" @submit.prevent="handleRegister">
+                        <label class="input-label">用户名</label>
+                        <input class="text-input" type="text" v-model="username" required minlength="2" maxlength="20" autocomplete="username">
+
+                        <label class="input-label">密码</label>
+                        <input class="text-input" type="password" v-model="password" required minlength="6" autocomplete="new-password">
+
+                        <label class="input-label">确认密码</label>
+                        <input class="text-input" type="password" v-model="confirmPassword" required minlength="6" autocomplete="new-password">
+
+                        <div class="error" v-if="errorMessage">{{ errorMessage }}</div>
+                        <button type="submit" class="primary-btn" :disabled="loading">{{ loading ? '注册中...' : '注册' }}</button>
                     </form>
                 </div>
             </div>
 
-            <!-- Chat Screen -->
-            <div v-else class="chat-view" key="chat">
-                <div class="chat-layout glass-panel">
-                    <!-- Sidebar -->
-                    <aside class="sidebar" :class="{ 'sidebar-open': isSidebarOpen }">
-                        <div class="sidebar-header">
-                            <div class="app-brand">
-                                <i class="ph-fill ph-chat-circle-dots"></i>
-                                <span>Lumina</span>
-                            </div>
-                            <button class="icon-btn mobile-close" @click="toggleSidebar">
-                                <i class="ph ph-x"></i>
+            <div v-else class="app-shell" key="chat">
+                <aside class="nav-panel">
+                    <div class="nav-header">
+                        <div>
+                            <div class="nav-label">Workspace</div>
+                            <div class="nav-title">Lumina HQ</div>
+                        </div>
+                        <div class="online-pill">{{ onlineUsers.length }} 在线</div>
+                    </div>
+
+                    <div class="user-block">
+                        <div class="avatar" :style="{ backgroundImage: getAvatarColor(username) }">
+                            {{ initials(username) }}
+                        </div>
+                        <div class="user-meta">
+                            <div class="user-name">{{ username }}</div>
+                            <div class="user-sub">保持沟通，随时在线</div>
+                        </div>
+                        <button class="ghost-btn" @click="logout">退出</button>
+                    </div>
+
+                    <div class="section">
+                        <div class="section-title">频道</div>
+                        <div class="channel-list">
+                            <button
+                                v-for="channel in channels"
+                                :key="channel.id"
+                                class="channel-row"
+                                :class="{ active: currentChannelId === channel.id }"
+                                @click="switchChannel(channel.id, channel.name, channel.description)"
+                            >
+                                <div class="channel-meta">
+                                    <span class="hash">#</span>
+                                    <div>
+                                        <div class="channel-name">{{ channel.name }}</div>
+                                        <div class="channel-desc">{{ channel.description || '随便聊聊' }}</div>
+                                    </div>
+                                </div>
+                                <span class="pill" v-if="channel.isDefault">默认</span>
                             </button>
                         </div>
+                    </div>
 
-                        <!-- Channel List -->
-                        <div class="channels-section">
-                            <div class="section-title">
-                                <span>频道</span>
-                                <button v-if="isAdmin" @click="showCreateChannelModal = true" class="icon-btn"
-                                    title="创建频道">
-                                    <i class="ph ph-plus"></i>
-                                </button>
-                            </div>
-                            <div class="channel-list">
-                                <div v-for="channel in channels" :key="channel.id" class="channel-item"
-                                    :class="{ active: currentChannelId === channel.id }"
-                                    @click="switchChannel(channel.id, channel.name)">
-                                    <i :class="`ph ${channel.icon}`"></i>
-                                    <span>{{ channel.name }}</span>
+                    <div class="section" v-if="availableChannels.length">
+                        <div class="section-title">可加入的频道</div>
+                        <div class="join-list">
+                            <div class="join-row" v-for="channel in availableChannels" :key="channel.id">
+                                <div>
+                                    <div class="channel-name">{{ channel.name }}</div>
+                                    <div class="channel-desc muted">{{ channel.description || '欢迎加入讨论' }}</div>
                                 </div>
-                            </div>
-
-                            <div class="section-title" v-if="availableChannels.length">
-                                <span>可加入的频道</span>
-                            </div>
-                            <div class="channel-list" v-if="availableChannels.length">
-                                <div v-for="channel in availableChannels" :key="channel.id"
-                                    class="channel-item joinable">
-                                    <div class="channel-info">
-                                        <i :class="`ph ${channel.icon}`"></i>
-                                        <span>{{ channel.name }}</span>
-                                    </div>
-                                    <button class="btn-small" @click.stop="joinChannel(channel)">加入</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Online Users -->
-                        <div class="online-users-section">
-                            <div class="section-title">
-                                <span>在线用户</span>
-                                <span class="badge">{{ onlineUsers.length }}</span>
-                            </div>
-                            <div class="user-list">
-                                <div v-for="user in onlineUsers" :key="user" class="user-card"
-                                    :class="{ 'is-me': user === username }">
-                                    <div class="avatar" :style="{ background: getAvatarColor(user) }">
-                                        {{ user.charAt(0).toUpperCase() }}
-                                        <div class="status-indicator online"></div>
-                                    </div>
-                                    <div class="user-info">
-                                        <span class="name">
-                                            {{ user }}
-                                            <i v-if="isAdmin && user === username"
-                                                class="ph-fill ph-shield-check admin-badge" title="管理员"></i>
-                                        </span>
-                                        <span class="status-text">{{ user === username ? '你' : '在线' }}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="sidebar-footer">
-                            <!-- Admin Panel Button -->
-                            <button v-if="isAdmin" @click="showAdminPanel = !showAdminPanel" class="admin-toggle-btn">
-                                <i class="ph ph-shield-check"></i>
-                                <span>管理面板</span>
-                            </button>
-                            <button @click="logout" class="logout-btn">
-                                <i class="ph ph-sign-out"></i>
-                                <span>退出登录</span>
-                            </button>
-                        </div>
-                    </aside>
-
-                    <!-- Main Chat Area -->
-                    <main class="chat-main">
-                        <header class="chat-header">
-                            <button class="icon-btn mobile-menu" @click="toggleSidebar">
-                                <i class="ph ph-list"></i>
-                            </button>
-                            <div class="room-info">
-                                <h2>
-                                    <i class="ph ph-hash"></i>
-                                    {{ currentChannelName || '选择频道' }}
-                                </h2>
-                                <span class="status-subtitle">{{ onlineUsers.length }} 人在线</span>
-                            </div>
-                            <div class="header-actions">
-                                <div class="connection-status" :class="{ 'connected': isConnected }">
-                                    <div class="status-dot"></div>
-                                    <span>{{ isConnected ? '已连接' : '重新连接中...' }}</span>
-                                </div>
-                            </div>
-                        </header>
-
-                        <!-- Mute Notification -->
-                        <transition name="slide-down">
-                            <div v-if="isMuted" class="mute-notification">
-                                <i class="ph-fill ph-warning-circle"></i>
-                                <span>{{ muteMessage }}</span>
-                            </div>
-                        </transition>
-
-                        <div class="messages-scroll-area" ref="messagesContainer">
-                            <div class="messages-wrapper">
-                                <transition-group name="message-anim">
-                                    <div v-for="msg in messages" :key="msg.id" class="message-row" :class="{
-                                        'message-own': msg.username === username && msg.messageType !== 'ai',
-                                        'message-system': msg.type === 'system',
-                                        'message-ai': msg.messageType === 'ai'
-                                    }">
-                                        <div v-if="msg.type === 'system'" class="system-badge">
-                                            <span>{{ msg.message }}</span>
-                                        </div>
-
-                                        <template v-else>
-                                            <div class="avatar"
-                                                :style="{ background: msg.messageType === 'ai' ? 'linear-gradient(135deg, #06b6d4, #0891b2)' : getAvatarColor(msg.username) }">
-                                                {{ msg.messageType === 'ai' ? '🤖' : msg.username.charAt(0).toUpperCase() }}
-                                            </div>
-                                            <div class="message-bubble">
-                                                <div class="message-meta">
-                                                    <span class="sender-name">
-                                                        {{ msg.username }}
-                                                        <span v-if="msg.messageType === 'ai'" class="ai-tag">AI</span>
-                                                    </span>
-                                                    <span class="timestamp">{{ formatTime(msg.timestamp) }}</span>
-                                                </div>
-                                                <div class="message-content">{{ msg.message }}</div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </transition-group>
-
-                                <div v-if="typingUser" class="typing-indicator-row">
-                                    <div class="typing-bubble">
-                                        <span class="typing-text">{{ typingUser }} 正在输入</span>
-                                        <div class="dots">
-                                            <span></span><span></span><span></span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="chat-input-area">
-                            <div class="input-hint" v-if="!isMuted">
-                                <i class="ph ph-info"></i> 提示: 输入 <code>/chat 你的消息</code> 与AI对话
-                            </div>
-                            <form @submit.prevent="sendMessage" class="input-container">
-                                <input type="text" v-model="newMessage" @input="handleTyping" placeholder="输入消息..."
-                                    class="main-input" :disabled="isMuted">
-                                <button type="submit" class="send-fab" :disabled="!newMessage.trim() || isMuted">
-                                    <i class="ph-fill ph-paper-plane-right"></i>
-                                </button>
-                            </form>
-                        </div>
-                    </main>
-
-                    <!-- Mobile Overlay -->
-                    <div class="sidebar-overlay" :class="{ 'active': isSidebarOpen }" @click="toggleSidebar"></div>
-                </div>
-
-                <!-- Admin Panel Modal -->
-                <transition name="fade">
-                    <div v-if="showAdminPanel && isAdmin" class="modal-overlay" @click="showAdminPanel = false">
-                        <div class="modal-content glass-panel" @click.stop>
-                            <div class="modal-header">
-                                <h3><i class="ph ph-shield-check"></i> 管理面板</h3>
-                                <button @click="showAdminPanel = false" class="icon-btn">
-                                    <i class="ph ph-x"></i>
-                                </button>
-                            </div>
-
-                            <div class="modal-body">
-                                <!-- Word Filters -->
-                                <section class="admin-section">
-                                    <h4>屏蔽词管理</h4>
-                                    <div class="filter-input-group">
-                                        <input v-model="newFilterWord" placeholder="添加屏蔽词" @keyup.enter="addWordFilter">
-                                        <button @click="addWordFilter" class="btn-small">添加</button>
-                                    </div>
-                                    <div class="filter-list">
-                                        <div v-for="filter in wordFilters" :key="filter._id" class="filter-item">
-                                            <span>{{ filter.word }}</span>
-                                            <button @click="removeWordFilter(filter._id)" class="btn-icon-danger">
-                                                <i class="ph ph-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </section>
-
-                                <!-- Global Mute -->
-                                <section class="admin-section">
-                                    <h4>全局禁言</h4>
-                                    <button @click="toggleGlobalMute" class="btn-toggle"
-                                        :class="{ active: globalMuteEnabled }">
-                                        <i :class="globalMuteEnabled ? 'ph-fill ph-speaker-slash' : 'ph ph-speaker-high'"></i>
-                                        {{ globalMuteEnabled ? '关闭全局禁言' : '启用全局禁言' }}
-                                    </button>
-                                </section>
-
-                                <!-- User Management -->
-                                <section class="admin-section">
-                                    <h4>用户管理</h4>
-                                    <div class="user-management-list">
-                                        <div v-for="user in allUsers" :key="user._id" class="user-mgmt-item">
-                                            <div class="user-mgmt-info">
-                                                <span class="user-mgmt-name">{{ user.username }}</span>
-                                                <span v-if="user.isMuted" class="mute-badge">已禁言</span>
-                                            </div>
-                                            <button v-if="!user.isMuted && user.role !== 'admin'"
-                                                @click="muteUser(user._id)" class="btn-small btn-danger">
-                                                禁言
-                                            </button>
-                                            <button v-else-if="user.isMuted" @click="unmuteUser(user._id)"
-                                                class="btn-small btn-success">
-                                                解除
-                                            </button>
-                                        </div>
-                                    </div>
-                                </section>
+                                <button class="pill primary" @click="joinChannel(channel)">加入</button>
                             </div>
                         </div>
                     </div>
-                </transition>
+                </aside>
 
-                <!-- Create Channel Modal -->
-                <transition name="fade">
-                    <div v-if="showCreateChannelModal && isAdmin" class="modal-overlay"
-                        @click="showCreateChannelModal = false">
-                        <div class="modal-content glass-panel modal-small" @click.stop>
-                            <div class="modal-header">
-                                <h3><i class="ph ph-plus-circle"></i> 创建新频道</h3>
-                                <button @click="showCreateChannelModal = false" class="icon-btn">
-                                    <i class="ph ph-x"></i>
-                                </button>
-                            </div>
-
-                            <div class="modal-body">
-                                <form @submit.prevent="createChannel" class="channel-form">
-                                    <div class="form-group">
-                                        <label>频道名称</label>
-                                        <input v-model="newChannelName" placeholder="例如: 技术讨论" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>频道描述</label>
-                                        <input v-model="newChannelDescription" placeholder="可选">
-                                    </div>
-                                    <div class="form-actions">
-                                        <button type="button" @click="showCreateChannelModal = false"
-                                            class="btn-secondary">
-                                            取消
-                                        </button>
-                                        <button type="submit" class="btn-primary">创建</button>
-                                    </div>
-                                </form>
+                <main class="chat-surface">
+                    <header class="chat-header">
+                        <div>
+                            <div class="eyebrow">频道</div>
+                            <div class="chat-title">{{ currentChannelName || '选择一个频道' }}</div>
+                            <div class="chat-subtitle">
+                                {{ currentChannelDescription || '从左侧选择频道开始聊天，使用 /chat 指令召唤 AI' }}
                             </div>
                         </div>
+                        <div class="chat-actions">
+                            <div class="soft-pill">
+                                <i class="ph ph-users-three"></i>
+                                <span>{{ onlineUsers.length }}</span>
+                            </div>
+                            <button class="icon-btn" @click="loadChannels" title="刷新频道">
+                                <i class="ph ph-arrows-clockwise"></i>
+                            </button>
+                            <button class="icon-btn" title="搜索">
+                                <i class="ph ph-magnifying-glass"></i>
+                            </button>
+                        </div>
+                    </header>
+
+                    <section class="message-scroll" ref="messagesContainer">
+                        <div v-if="messages.length === 0" class="empty-state">
+                            <div class="empty-icon"><i class="ph ph-chat-centered-dots"></i></div>
+                            <div class="empty-title">这里还没有消息</div>
+                            <p class="empty-subtitle">抢先发一条，打破沉默吧。</p>
+                        </div>
+
+                        <div v-for="message in messages" :key="message.id" class="message-card">
+                            <div class="avatar" :style="{ backgroundImage: getAvatarColor(message.username) }">
+                                {{ initials(message.username) }}
+                            </div>
+                            <div class="message-body">
+                                <div class="message-head">
+                                    <span class="message-user">{{ message.username }}</span>
+                                    <span class="tag" v-if="message.messageType === 'ai'">AI</span>
+                                    <span class="timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+                                </div>
+                                <div class="message-text">{{ message.message }}</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="typing-indicator" v-if="typingUser">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        <span class="typing-text">{{ typingUser }} 正在输入...</span>
                     </div>
-                </transition>
+
+                    <footer class="composer">
+                        <form class="composer-form" @submit.prevent="sendMessage">
+                            <div class="input-shell">
+                                <button type="button" class="icon-btn subtle" title="表情">
+                                    <i class="ph ph-smiley"></i>
+                                </button>
+                                <input
+                                    type="text"
+                                    v-model="newMessage"
+                                    :disabled="!currentChannelId"
+                                    placeholder="输入消息，按回车发送"
+                                    @input="handleTyping"
+                                >
+                                <button class="send-btn" type="submit" :disabled="!newMessage.trim()">
+                                    发送
+                                </button>
+                            </div>
+                        </form>
+                        <div class="composer-hint">提示：输入 /chat + 问题 与 AI 对话</div>
+                    </footer>
+                </main>
             </div>
         </transition>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <script src="app.js"></script>
 </body>
-
 </html>

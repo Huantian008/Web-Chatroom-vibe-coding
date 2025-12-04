@@ -371,7 +371,8 @@ io.on('connection', async (socket) => {
                 userId: newMessage.userId,
                 message: newMessage.message,
                 timestamp: newMessage.timestamp,
-                messageType: 'user'
+                messageType: 'user',
+                channelId
             });
 
             console.log(`💬 [${channelId}] ${socket.username}: ${message.substring(0, 50)}`);
@@ -468,7 +469,8 @@ async function handleAICommand(socket, channelId, message) {
                 username: 'DeepSeek AI',
                 message: aiResponseMessage.message,
                 timestamp: aiResponseMessage.timestamp,
-                messageType: 'ai'
+                messageType: 'ai',
+                channelId
             });
 
             console.log(`🤖 [${channelId}] DeepSeek AI responded to ${socket.username}`);
