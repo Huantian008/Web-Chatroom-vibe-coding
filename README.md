@@ -1,375 +1,83 @@
-# Lumina Chat - 实时聊天室应用
+# Lumina Chat - 多频道实时聊天室
 
-一个功能完善的实时聊天室应用，支持用户注册、登录、历史消息持久化存储。
+一个带管理员能力的多频道实时聊天室，支持 JWT 登录、MongoDB 持久化、AI 助手（/chat 命令），并提供简洁的桌面/移动端 UI。
 
-## 功能特性
+## 核心特性
+- 多频道：默认频道 + 可加入/创建的频道，频道历史独立加载。
+- 认证与权限：注册/登录、JWT 鉴权、管理员账号（`backend/config/admins.json`）。
+- 管控：全局/单用户禁言、敏感词过滤、频道成员校验。
+- 实时体验：Socket.io 推送、在线用户列表、输入中提示。
+- AI 对话：输入 `/chat 你的问题` 触发 DeepSeek AI 回复。
+- 技术栈：Express + Socket.io + MongoDB + Mongoose；前端 Vue 3 (CDN) + Socket.io Client；AI 服务 Flask + DeepSeek API。
 
-- ✅ 用户注册和登录系统
-- ✅ JWT Token 认证
-- ✅ 实时消息传输 (Socket.io)
-- ✅ 历史聊天记录持久化 (MongoDB)
-- ✅ 在线用户列表
-- ✅ 打字指示器
-- ✅ 响应式设计 (支持移动端)
-- ✅ 精美的玻璃态UI设计
-
-## 技术栈
-
-### 后端
-- Node.js + Express
-- Socket.io (实时通信)
-- MongoDB + Mongoose (数据持久化)
-- JWT (身份认证)
-- bcrypt (密码加密)
-
-### 前端
-- Vue 3 (CDN版本)
-- Socket.io Client
-- 原生CSS (玻璃态设计)
-
-## 安装和运行
-
-### 前置要求
-
-1. **Node.js** (推荐 v16 或更高版本)
-2. **MongoDB** (本地安装或使用 MongoDB Atlas)
-
-### 安装步骤
-
-#### 1. 安装 MongoDB
-
-**Windows (使用 WSL):**
-```bash
-# 更新包列表
-sudo apt update
-
-# 安装 MongoDB
-sudo apt install -y mongodb
-
-# 启动 MongoDB 服务
-sudo service mongodb start
-
-# 验证 MongoDB 是否运行
-sudo service mongodb status
+## 目录结构
+```
+chat-room/
+├── backend/          # Node.js 服务（API + Socket.io）
+├── frontend/         # 前端静态页 (Vue 3 + CSS)
+└── ai-service/       # Python Flask AI 代理，调用 DeepSeek
 ```
 
-**或使用 MongoDB Atlas (云数据库):**
-- 访问 https://www.mongodb.com/cloud/atlas
-- 创建免费账户和集群
-- 获取连接字符串并配置到 `.env` 文件
+## 环境要求
+- Node.js 16+
+- Python 3.10+（运行 ai-service）
+- MongoDB 本地实例（默认 `mongodb://localhost:27017/chat-room`）
 
-#### 2. 安装后端依赖
-
+## 快速开始
+### 1) 后端
 ```bash
 cd chat-room/backend
 npm install
-```
-
-#### 3. 配置环境变量（可选）
-
-在 `backend/` 目录创建 `.env` 文件：
-
-```env
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/chat-room
-JWT_SECRET=your-secret-key-change-this-in-production
-```
-
-如果不创建 `.env` 文件，将使用默认配置。
-
-#### 4. 启动后端服务器
-
-```bash
-cd chat-room/backend
+# 可选：配置 .env
+# PORT=3000
+# MONGODB_URI=mongodb://localhost:27017/chat-room
+# JWT_SECRET=change-me
 npm start
+# 服务默认 http://localhost:3000
 ```
 
-服务器将在 http://localhost:3000 运行
+### 2) AI 服务
+```bash
+cd chat-room/ai-service
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 
-#### 5. 启动前端
+# 配置 DeepSeek Key（任选其一）
+# 在 ai-service/.env 写入：
+# DEEPSEEK_API_KEY=你的key
+# 或直接导出环境变量：
+# export DEEPSEEK_API_KEY=你的key
 
-打开新的终端窗口：
+python app.py    # 默认端口 5000
+```
 
-**方法 1: 使用 Python**
+### 3) 前端
 ```bash
 cd chat-room/frontend
-python -m http.server 8080
+python -m http.server 8080   # 或任意静态服务器
+# 浏览器访问 http://localhost:8080
 ```
 
-**方法 2: 使用 Node.js http-server**
-```bash
-cd chat-room/frontend
-npx http-server -p 8080
-```
+## 使用指南
+1. 注册/登录后自动进入默认频道。左侧可切换频道；有“可加入的频道”时可点击加入。
+2. 发送消息：输入文本回车或点击“发送”。
+3. AI 对话：在输入框输入 `/chat 你好`，几秒后会收到“DeepSeek AI”回复。
+4. 管理员：在 `backend/config/admins.json` 写入用户名，管理员可创建频道、禁言用户、维护敏感词等。
 
-**方法 3: 直接打开文件**
-```bash
-# 在浏览器中打开
-cd chat-room/frontend
-# 双击 index.html 或者在浏览器中打开
-```
+## 配置说明
+- 后端 `.env`（可选）：`PORT`、`MONGODB_URI`、`JWT_SECRET`、`AI_SERVICE_URL`（默认 `http://localhost:5000`）。
+- AI 服务 `.env`：`DEEPSEEK_API_KEY` 必填；`PORT` 可选。
+- 管理员列表：`backend/config/admins.json`。
 
-#### 6. 访问应用
+## 常见问题
+- AI 一直“正在输入”但无回复：检查 `ai-service` 终端是否有 401/429/网络错误；确认 `DEEPSEEK_API_KEY` 生效；确保后端环境变量 `AI_SERVICE_URL` 指向正在运行的 AI 服务。
+- MongoDB 连接失败：确认本地 MongoDB 已启动，或在 `.env` 覆盖 `MONGODB_URI`。
+- 频道无消息：切换频道会重新拉取该频道历史，确认自己已加入该频道。
 
-在浏览器中打开: http://localhost:8080
-
-## 使用说明
-
-### 注册新用户
-
-1. 打开应用后，点击"注册"标签
-2. 输入用户名 (2-20个字符)
-3. 输入密码 (至少6个字符)
-4. 确认密码
-5. 点击"注册"按钮
-
-### 登录
-
-1. 在"登录"标签输入用户名和密码
-2. 点击"登录"按钮
-3. 登录成功后会自动进入聊天室
-
-### 发送消息
-
-1. 在底部输入框输入消息
-2. 按回车键或点击发送按钮发送
-3. 所有在线用户会实时收到消息
-
-### 查看历史消息
-
-- 登录后会自动加载最近100条历史消息
-- 消息存储在MongoDB数据库中，重启服务器后依然保留
-
-### 退出登录
-
-点击左侧边栏底部的"退出登录"按钮
-
-## API 接口
-
-### 认证接口
-
-#### POST /api/auth/register
-注册新用户
-
-**请求体:**
-```json
-{
-  "username": "string",
-  "password": "string"
-}
-```
-
-**响应:**
-```json
-{
-  "message": "注册成功",
-  "token": "jwt-token",
-  "user": {
-    "id": "user-id",
-    "username": "username"
-  }
-}
-```
-
-#### POST /api/auth/login
-用户登录
-
-**请求体:**
-```json
-{
-  "username": "string",
-  "password": "string"
-}
-```
-
-**响应:**
-```json
-{
-  "message": "登录成功",
-  "token": "jwt-token",
-  "user": {
-    "id": "user-id",
-    "username": "username"
-  }
-}
-```
-
-#### GET /api/auth/verify
-验证 Token
-
-**请求头:**
-```
-Authorization: Bearer <token>
-```
-
-**响应:**
-```json
-{
-  "user": {
-    "id": "user-id",
-    "username": "username"
-  }
-}
-```
-
-#### GET /api/messages
-获取历史消息
-
-**响应:**
-```json
-[
-  {
-    "_id": "message-id",
-    "username": "username",
-    "message": "message text",
-    "timestamp": "2025-12-03T10:00:00.000Z"
-  }
-]
-```
-
-### Socket.io 事件
-
-#### 客户端发送事件
-
-- `send-message` - 发送消息
-  ```javascript
-  socket.emit('send-message', { message: 'Hello' });
-  ```
-
-- `typing` - 开始输入
-  ```javascript
-  socket.emit('typing');
-  ```
-
-- `stop-typing` - 停止输入
-  ```javascript
-  socket.emit('stop-typing');
-  ```
-
-#### 服务器发送事件
-
-- `message-history` - 历史消息列表
-- `user-joined` - 用户加入
-- `user-left` - 用户离开
-- `user-list` - 在线用户列表
-- `new-message` - 新消息
-- `user-typing` - 用户正在输入
-- `user-stop-typing` - 用户停止输入
-
-## 数据库结构
-
-### User 集合
-```javascript
-{
-  username: String,      // 用户名 (唯一)
-  password: String,      // 加密后的密码
-  createdAt: Date,       // 创建时间
-  lastLogin: Date        // 最后登录时间
-}
-```
-
-### Message 集合
-```javascript
-{
-  username: String,      // 发送者用户名
-  message: String,       // 消息内容
-  timestamp: Date        // 发送时间
-}
-```
-
-## 安全特性
-
-- ✅ 密码使用 bcrypt 加密存储
-- ✅ JWT Token 认证
-- ✅ Socket.io 连接需要 Token 验证
-- ✅ 输入验证和错误处理
-- ⚠️ CORS 目前设置为允许所有源 (生产环境需要修改)
-
-## 开发建议
-
-### 生产环境部署前需要修改的地方
-
-1. **修改 CORS 设置** (`backend/server.js`)
-   ```javascript
-   const io = socketIo(server, {
-       cors: {
-           origin: "https://your-domain.com",  // 修改为你的域名
-           methods: ["GET", "POST"]
-       }
-   });
-   ```
-
-2. **设置环境变量**
-   - 生产环境必须设置强密码的 `JWT_SECRET`
-   - 使用 MongoDB Atlas 或其他云数据库
-   - 设置合适的 PORT
-
-3. **修改前端 API URL** (`frontend/app.js`)
-   ```javascript
-   const API_URL = 'https://your-backend-domain.com';
-   ```
-
-## 故障排除
-
-### MongoDB 连接失败
-
-1. 确保 MongoDB 服务正在运行:
-   ```bash
-   sudo service mongodb status
-   ```
-
-2. 如果未运行，启动服务:
-   ```bash
-   sudo service mongodb start
-   ```
-
-3. 检查连接字符串是否正确
-
-### Socket.io 连接失败
-
-1. 确保后端服务器正在运行
-2. 检查浏览器控制台是否有 CORS 错误
-3. 确认前端 API_URL 配置正确
-
-### Token 认证失败
-
-1. 清除浏览器 localStorage
-2. 重新登录
-3. 检查 JWT_SECRET 配置
-
-## 项目结构
-
-```
-chat-room/
-├── backend/
-│   ├── config/
-│   │   └── database.js       # MongoDB 连接配置
-│   ├── models/
-│   │   ├── User.js           # 用户模型
-│   │   └── Message.js        # 消息模型
-│   ├── server.js             # 主服务器文件
-│   └── package.json
-│
-└── frontend/
-    ├── index.html            # HTML 页面
-    ├── app.js                # Vue 应用逻辑
-    └── style.css             # 样式文件
-```
+## 开发提示
+- 避免将虚拟环境 `.venv` 和 `node_modules` 提交，可在根 `.gitignore` 中忽略（已默认忽略后端 node_modules 和 ai-service/.venv）。
+- 生产环境请限制 CORS、使用强密码 `JWT_SECRET`，并为 DeepSeek Key 做好密钥管理。
 
 ## 许可证
-
 MIT License
-
-## 作者
-
-Lumina Chat - 学习项目
-
-## 更新日志
-
-### v1.0.0 (2025-12-03)
-- ✅ 实现用户注册和登录
-- ✅ 添加 JWT 认证
-- ✅ MongoDB 数据持久化
-- ✅ 实时消息传输
-- ✅ 历史消息加载
-- ✅ 响应式 UI 设计
