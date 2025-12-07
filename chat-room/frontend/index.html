@@ -1,87 +1,216 @@
+<!-- ===== HTML5 文档类型声明 ===== -->
+<!-- 告诉浏览器这是一个 HTML5 文档 -->
 <!DOCTYPE html>
+
+<!-- ===== HTML 根元素 ===== -->
+<!-- lang="zh-CN"：指定页面语言为中文（中国） -->
 <html lang="zh-CN">
+
+<!-- ===== head 部分 ===== -->
+<!-- 包含页面的元数据（metadata），不会直接显示在页面上 -->
 <head>
+    <!-- ===== 字符编码 ===== -->
+    <!-- UTF-8：支持世界上所有语言的字符编码 -->
     <meta charset="UTF-8">
+
+    <!-- ===== 视口设置 ===== -->
+    <!-- 这一行对于移动端适配非常重要 -->
+    <!-- width=device-width：视口宽度等于设备宽度 -->
+    <!-- initial-scale=1.0：初始缩放比例为 1（不缩放） -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- ===== 页面描述 ===== -->
+    <!-- 用于搜索引擎优化（SEO），显示在搜索结果中 -->
     <meta name="description" content="多频道实时聊天室">
+
+    <!-- ===== 页面标题 ===== -->
+    <!-- 显示在浏览器标签页上 -->
     <title>Lumina Chat</title>
+
+    <!-- ===== 引入 CSS 样式表 ===== -->
+    <!-- style.css：自定义的样式文件 -->
     <link rel="stylesheet" href="style.css">
+
+    <!-- ===== 预连接到 Google Fonts ===== -->
+    <!-- preconnect：提前建立连接，加快字体加载速度 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- ===== 引入 Google Fonts 字体 ===== -->
+    <!-- Manrope：主要字体，用于大部分文本 -->
+    <!-- Sora：标题字体，用于品牌名称等 -->
+    <!-- display=swap：字体加载期间先显示系统字体，加载完成后切换 -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;700&display=swap" rel="stylesheet">
+
+    <!-- ===== 引入 Phosphor Icons 图标库 ===== -->
+    <!-- 用于显示各种图标（用户、搜索、刷新等） -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- ===== 引入 Socket.io 客户端库 ===== -->
+    <!-- 版本 4.6.1，用于实时通信（WebSocket） -->
+    <!-- crossorigin="anonymous"：允许跨域加载 -->
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js" crossorigin="anonymous"></script>
+
+    <!-- ===== 引入 Vue 3 框架 ===== -->
+    <!-- 使用 CDN 方式加载（生产环境版本） -->
+    <!-- Vue 是一个用于构建用户界面的 JavaScript 框架 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 </head>
+
+<!-- ===== body 部分 ===== -->
+<!-- 包含页面的可见内容 -->
 <body>
+    <!-- ===== Vue 应用的挂载点 ===== -->
+    <!-- id="app"：Vue 会挂载到这个元素上 -->
+    <!-- v-cloak：在 Vue 加载完成前隐藏元素，防止显示原始的模板语法 -->
     <div id="app" v-cloak>
+        <!-- ===== transition 过渡动画组件 ===== -->
+        <!-- name="fade"：使用名为 fade 的过渡动画 -->
+        <!-- mode="out-in"：先淡出旧元素，再淡入新元素 -->
         <transition name="fade" mode="out-in">
+
+            <!-- ============================================================ -->
+            <!-- ===== 登录/注册界面（未登录状态） ===== -->
+            <!-- ============================================================ -->
+            <!-- v-if="!isLoggedIn"：只有未登录时才显示 -->
+            <!-- key="auth"：用于 Vue 识别这个元素（过渡动画需要） -->
             <div v-if="!isLoggedIn" class="auth-screen" key="auth">
+                <!-- ===== 认证卡片容器 ===== -->
                 <div class="auth-card">
+                    <!-- ===== 品牌标识行 ===== -->
                     <div class="brand-row">
+                        <!-- 品牌图标：显示 "LC" 字母 -->
                         <div class="brand-icon">LC</div>
                         <div>
+                            <!-- 品牌名称 -->
                             <div class="brand-title">Lumina Chat</div>
+                            <!-- 品牌副标题 -->
                             <p class="brand-subtitle">登录或注册后开启对话</p>
                         </div>
                     </div>
 
+                    <!-- ===== 登录/注册切换标签 ===== -->
                     <div class="auth-tabs">
+                        <!-- 登录按钮 -->
+                        <!-- :class="{ active: authMode === 'login' }"：当 authMode 为 'login' 时添加 active 类 -->
+                        <!-- @click="authMode = 'login'"：点击时切换到登录模式 -->
                         <button class="auth-tab" :class="{ active: authMode === 'login' }" @click="authMode = 'login'">登录</button>
+
+                        <!-- 注册按钮 -->
                         <button class="auth-tab" :class="{ active: authMode === 'register' }" @click="authMode = 'register'">注册</button>
                     </div>
 
+                    <!-- ===== 登录表单 ===== -->
+                    <!-- v-if="authMode === 'login'"：只有在登录模式时才显示 -->
+                    <!-- @submit.prevent="handleLogin"：提交表单时调用 handleLogin 方法 -->
+                    <!-- .prevent：阻止表单的默认提交行为（刷新页面） -->
                     <form v-if="authMode === 'login'" class="auth-form" @submit.prevent="handleLogin">
+                        <!-- 用户名标签 -->
                         <label class="input-label">用户名</label>
+                        <!-- 用户名输入框 -->
+                        <!-- v-model="username"：双向绑定到 username 数据 -->
+                        <!-- required：必填字段 -->
+                        <!-- minlength="2"：最少2个字符 -->
+                        <!-- maxlength="20"：最多20个字符 -->
+                        <!-- autocomplete="username"：浏览器自动填充用户名 -->
                         <input class="text-input" type="text" v-model="username" required minlength="2" maxlength="20" autocomplete="username">
 
+                        <!-- 密码标签 -->
                         <label class="input-label">密码</label>
+                        <!-- 密码输入框 -->
+                        <!-- type="password"：密码类型，输入内容会被隐藏 -->
+                        <!-- autocomplete="current-password"：浏览器自动填充当前密码 -->
                         <input class="text-input" type="password" v-model="password" required minlength="6" autocomplete="current-password">
 
+                        <!-- ===== 错误消息 ===== -->
+                        <!-- v-if="errorMessage"：只有当 errorMessage 不为空时才显示 -->
+                        <!-- {{ errorMessage }}：显示错误消息的内容 -->
                         <div class="error" v-if="errorMessage">{{ errorMessage }}</div>
+
+                        <!-- ===== 登录按钮 ===== -->
+                        <!-- type="submit"：提交表单 -->
+                        <!-- :disabled="loading"：当 loading 为 true 时禁用按钮 -->
+                        <!-- {{ loading ? '登录中...' : '登录' }}：根据 loading 状态显示不同文本 -->
                         <button type="submit" class="primary-btn" :disabled="loading">{{ loading ? '登录中...' : '登录' }}</button>
                     </form>
 
+                    <!-- ===== 注册表单 ===== -->
+                    <!-- v-else：如果不是登录模式，就显示注册表单 -->
                     <form v-else class="auth-form" @submit.prevent="handleRegister">
+                        <!-- 用户名输入 -->
                         <label class="input-label">用户名</label>
                         <input class="text-input" type="text" v-model="username" required minlength="2" maxlength="20" autocomplete="username">
 
+                        <!-- 密码输入 -->
                         <label class="input-label">密码</label>
+                        <!-- autocomplete="new-password"：提示浏览器这是新密码 -->
                         <input class="text-input" type="password" v-model="password" required minlength="6" autocomplete="new-password">
 
+                        <!-- 确认密码输入 -->
                         <label class="input-label">确认密码</label>
                         <input class="text-input" type="password" v-model="confirmPassword" required minlength="6" autocomplete="new-password">
 
+                        <!-- 错误消息 -->
                         <div class="error" v-if="errorMessage">{{ errorMessage }}</div>
+
+                        <!-- 注册按钮 -->
                         <button type="submit" class="primary-btn" :disabled="loading">{{ loading ? '注册中...' : '注册' }}</button>
                     </form>
                 </div>
             </div>
 
+            <!-- ============================================================ -->
+            <!-- ===== 聊天主界面（已登录状态） ===== -->
+            <!-- ============================================================ -->
+            <!-- v-else：如果已登录，显示聊天界面 -->
+            <!-- key="chat"：用于 Vue 识别这个元素 -->
             <div v-else class="app-shell" key="chat">
+
+                <!-- ===== 左侧导航面板 ===== -->
                 <aside class="nav-panel">
+                    <!-- ===== 导航头部 ===== -->
                     <div class="nav-header">
                         <div>
+                            <!-- 工作空间标签 -->
                             <div class="nav-label">Workspace</div>
+                            <!-- 工作空间名称 -->
                             <div class="nav-title">Lumina HQ</div>
                         </div>
+                        <!-- ===== 在线用户数量显示 ===== -->
+                        <!-- {{ onlineUsers.length }}：显示在线用户数量 -->
                         <div class="online-pill">{{ onlineUsers.length }} 在线</div>
                     </div>
 
+                    <!-- ===== 用户信息块 ===== -->
                     <div class="user-block">
+                        <!-- ===== 用户头像 ===== -->
+                        <!-- :style="{ backgroundImage: getAvatarColor(username) }"：动态设置背景渐变色 -->
+                        <!-- {{ initials(username) }}：显示用户名首字母 -->
                         <div class="avatar" :style="{ backgroundImage: getAvatarColor(username) }">
                             {{ initials(username) }}
                         </div>
+                        <!-- 用户元信息 -->
                         <div class="user-meta">
+                            <!-- 显示用户名 -->
                             <div class="user-name">{{ username }}</div>
+                            <!-- 用户状态描述 -->
                             <div class="user-sub">保持沟通，随时在线</div>
                         </div>
+                        <!-- ===== 退出按钮 ===== -->
+                        <!-- @click="logout"：点击时调用 logout 方法 -->
                         <button class="ghost-btn" @click="logout">退出</button>
                     </div>
 
+                    <!-- ===== 频道列表部分 ===== -->
                     <div class="section">
+                        <!-- 频道标题 -->
                         <div class="section-title">频道</div>
                         <div class="channel-list">
+                            <!-- ===== 频道列表项 ===== -->
+                            <!-- v-for="channel in channels"：遍历 channels 数组 -->
+                            <!-- :key="channel.id"：为每个频道指定唯一的 key -->
+                            <!-- :class="{ active: currentChannelId === channel.id }"：当前频道高亮显示 -->
+                            <!-- @click="switchChannel(...)"：点击时切换到该频道 -->
                             <button
                                 v-for="channel in channels"
                                 :key="channel.id"
@@ -89,88 +218,145 @@
                                 :class="{ active: currentChannelId === channel.id }"
                                 @click="switchChannel(channel.id, channel.name, channel.description)"
                             >
+                                <!-- 频道元信息 -->
                                 <div class="channel-meta">
+                                    <!-- 井号图标（#） -->
                                     <span class="hash">#</span>
                                     <div>
+                                        <!-- 频道名称 -->
                                         <div class="channel-name">{{ channel.name }}</div>
+                                        <!-- 频道描述 -->
+                                        <!-- || '随便聊聊'：如果没有描述，显示默认文本 -->
                                         <div class="channel-desc">{{ channel.description || '随便聊聊' }}</div>
                                     </div>
                                 </div>
+                                <!-- ===== 默认频道标记 ===== -->
+                                <!-- v-if="channel.isDefault"：只有默认频道才显示 -->
                                 <span class="pill" v-if="channel.isDefault">默认</span>
                             </button>
                         </div>
                     </div>
 
+                    <!-- ===== 可加入的频道列表部分 ===== -->
+                    <!-- v-if="availableChannels.length"：只有当有可加入的频道时才显示 -->
                     <div class="section" v-if="availableChannels.length">
                         <div class="section-title">可加入的频道</div>
                         <div class="join-list">
+                            <!-- ===== 可加入的频道项 ===== -->
                             <div class="join-row" v-for="channel in availableChannels" :key="channel.id">
                                 <div>
+                                    <!-- 频道名称 -->
                                     <div class="channel-name">{{ channel.name }}</div>
+                                    <!-- 频道描述 -->
                                     <div class="channel-desc muted">{{ channel.description || '欢迎加入讨论' }}</div>
                                 </div>
+                                <!-- ===== 加入按钮 ===== -->
+                                <!-- @click="joinChannel(channel)"：点击时加入该频道 -->
                                 <button class="pill primary" @click="joinChannel(channel)">加入</button>
                             </div>
                         </div>
                     </div>
                 </aside>
 
+                <!-- ===== 主聊天区域 ===== -->
                 <main class="chat-surface">
+                    <!-- ===== 聊天头部 ===== -->
                     <header class="chat-header">
                         <div>
+                            <!-- 小标题 -->
                             <div class="eyebrow">频道</div>
+                            <!-- 当前频道名称 -->
                             <div class="chat-title">{{ currentChannelName || '选择一个频道' }}</div>
+                            <!-- 当前频道描述 -->
                             <div class="chat-subtitle">
                                 {{ currentChannelDescription || '从左侧选择频道开始聊天，使用 /chat 指令召唤 AI' }}
                             </div>
                         </div>
+                        <!-- ===== 聊天操作按钮组 ===== -->
                         <div class="chat-actions">
+                            <!-- 在线用户数显示 -->
                             <div class="soft-pill">
+                                <!-- 用户图标 -->
                                 <i class="ph ph-users-three"></i>
+                                <!-- 在线人数 -->
                                 <span>{{ onlineUsers.length }}</span>
                             </div>
+                            <!-- ===== 刷新频道按钮 ===== -->
+                            <!-- @click="loadChannels"：点击时重新加载频道列表 -->
+                            <!-- title：鼠标悬停时显示的提示文本 -->
                             <button class="icon-btn" @click="loadChannels" title="刷新频道">
                                 <i class="ph ph-arrows-clockwise"></i>
                             </button>
+                            <!-- 搜索按钮（目前只是装饰） -->
                             <button class="icon-btn" title="搜索">
                                 <i class="ph ph-magnifying-glass"></i>
                             </button>
                         </div>
                     </header>
 
+                    <!-- ===== 消息滚动区域 ===== -->
+                    <!-- ref="messagesContainer"：Vue 引用，用于在 JS 中访问这个元素 -->
                     <section class="message-scroll" ref="messagesContainer">
+                        <!-- ===== 空状态提示 ===== -->
+                        <!-- v-if="messages.length === 0"：只有当消息列表为空时才显示 -->
                         <div v-if="messages.length === 0" class="empty-state">
+                            <!-- 空状态图标 -->
                             <div class="empty-icon"><i class="ph ph-chat-centered-dots"></i></div>
+                            <!-- 空状态标题 -->
                             <div class="empty-title">这里还没有消息</div>
+                            <!-- 空状态描述 -->
                             <p class="empty-subtitle">抢先发一条，打破沉默吧。</p>
                         </div>
 
+                        <!-- ===== 消息列表 ===== -->
+                        <!-- v-for="message in messages"：遍历消息数组 -->
+                        <!-- :key="message.id"：每条消息的唯一标识 -->
                         <div v-for="message in messages" :key="message.id" class="message-card">
+                            <!-- 消息发送者的头像 -->
                             <div class="avatar" :style="{ backgroundImage: getAvatarColor(message.username) }">
                                 {{ initials(message.username) }}
                             </div>
+                            <!-- 消息主体 -->
                             <div class="message-body">
+                                <!-- ===== 消息头部 ===== -->
                                 <div class="message-head">
+                                    <!-- 用户名 -->
                                     <span class="message-user">{{ message.username }}</span>
+                                    <!-- ===== AI 标签 ===== -->
+                                    <!-- v-if="message.messageType === 'ai'"：只有 AI 消息才显示 -->
                                     <span class="tag" v-if="message.messageType === 'ai'">AI</span>
+                                    <!-- 消息时间戳 -->
                                     <span class="timestamp">{{ formatTimestamp(message.timestamp) }}</span>
                                 </div>
+                                <!-- 消息文本内容 -->
                                 <div class="message-text">{{ message.message }}</div>
                             </div>
                         </div>
                     </section>
 
+                    <!-- ===== 输入指示器 ===== -->
+                    <!-- v-if="typingUser"：只有当有人正在输入时才显示 -->
                     <div class="typing-indicator" v-if="typingUser">
+                        <!-- 三个点的动画效果 -->
                         <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        <!-- 显示正在输入的用户名 -->
                         <span class="typing-text">{{ typingUser }} 正在输入...</span>
                     </div>
 
+                    <!-- ===== 消息输入区域 ===== -->
                     <footer class="composer">
+                        <!-- ===== 输入表单 ===== -->
+                        <!-- @submit.prevent="sendMessage"：提交时发送消息 -->
                         <form class="composer-form" @submit.prevent="sendMessage">
                             <div class="input-shell">
+                                <!-- 表情按钮（目前只是装饰） -->
                                 <button type="button" class="icon-btn subtle" title="表情">
                                     <i class="ph ph-smiley"></i>
                                 </button>
+                                <!-- ===== 消息输入框 ===== -->
+                                <!-- v-model="newMessage"：双向绑定到 newMessage 数据 -->
+                                <!-- :disabled="!currentChannelId"：没有选中频道时禁用 -->
+                                <!-- @input="handleTyping"：输入时触发输入指示器 -->
                                 <input
                                     type="text"
                                     v-model="newMessage"
@@ -178,11 +364,15 @@
                                     placeholder="输入消息，按回车发送"
                                     @input="handleTyping"
                                 >
+                                <!-- ===== 发送按钮 ===== -->
+                                <!-- :disabled="!newMessage.trim()"：消息为空时禁用 -->
                                 <button class="send-btn" type="submit" :disabled="!newMessage.trim()">
                                     发送
                                 </button>
                             </div>
                         </form>
+                        <!-- ===== 输入提示 ===== -->
+                        <!-- 提示用户可以使用 /chat 命令与 AI 对话 -->
                         <div class="composer-hint">提示：输入 /chat + 问题 与 AI 对话</div>
                     </footer>
                 </main>
@@ -190,6 +380,9 @@
         </transition>
     </div>
 
+    <!-- ===== 引入 Vue 应用的 JavaScript 文件 ===== -->
+    <!-- 这个文件包含了所有的 Vue 应用逻辑 -->
+    <!-- 包括：数据定义、方法、生命周期钩子等 -->
     <script src="app.js"></script>
 </body>
 </html>

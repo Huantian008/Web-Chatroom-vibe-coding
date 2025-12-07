@@ -1,60 +1,149 @@
+// ===== 引入Node.js内置模块 =====
+
+// fs（File System）：文件系统模块，用于读取和监听文件
 const fs = require('fs');
+
+// path：路径模块，用于处理文件路径
 const path = require('path');
 
+// ===== 定义管理员配置文件的路径 =====
+// __dirname：当前文件所在的目录
+// path.join()：拼接路径，生成完整的文件路径
+// 最终路径：backend/config/admins.json
 const ADMIN_CONFIG_PATH = path.join(__dirname, '../config/admins.json');
 
+// ===== 定义管理员辅助类 =====
+// 这是一个类（Class），用于管理管理员名单
+// 类就像是一个"模板"，可以创建对象并提供相关功能
 class AdminHelper {
+    // ===== 构造函数 =====
+    // constructor() 是类的构造函数，创建对象时自动执行
     constructor() {
+        // this.admins：存储管理员名单的集合（Set）
+        // Set 是 JavaScript 的数据结构，类似数组但元素不重复
+        // 例如：Set(['admin', 'Ruence'])
         this.admins = new Set();
+
+        // this.watcher：文件监听器，用于监听配置文件的变化
         this.watcher = null;
+
+        // 加载管理员名单（从配置文件中读取）
         this.loadAdmins();
+
+        // 开始监听配置文件（当文件修改时自动重新加载）
         this.watchAdminFile();
     }
 
+    // ===== 加载管理员名单的方法 =====
+    // 从 admins.json 文件中读取管理员名单
     loadAdmins() {
+        // try-catch：错误处理
         try {
+            // ===== 读取配置文件 =====
+            // fs.readFileSync()：同步读取文件（程序会等待读取完成）
+            // 参数1：文件路径
+            // 参数2：编码格式（'utf8' 表示以文本格式读取）
+            // 返回：文件内容（字符串）
             const data = fs.readFileSync(ADMIN_CONFIG_PATH, 'utf8');
+
+            // ===== 解析 JSON 数据 =====
+            // JSON.parse()：将 JSON 字符串转换为 JavaScript 对象
+            // 例如：'{"admins": ["admin", "Ruence"]}' -> { admins: ['admin', 'Ruence'] }
             const config = JSON.parse(data);
+
+            // ===== 将管理员名单存入 Set =====
+            // config.admins：从配置对象中获取 admins 数组
+            // || []：如果 config.admins 不存在，使用空数组
+            // new Set()：创建一个新的 Set 对象，自动去重
             this.admins = new Set(config.admins || []);
+
+            // ===== 打印日志 =====
+            // Array.from(this.admins)：将 Set 转换为数组
+            // .join(', ')：将数组元素用逗号连接成字符串
+            // 例如：['admin', 'Ruence'] -> 'admin, Ruence'
             console.log(`✅ Loaded ${this.admins.size} admin(s): ${Array.from(this.admins).join(', ')}`);
+
         } catch (error) {
+            // ===== 如果读取文件失败 =====
+            // 可能的原因：文件不存在、JSON 格式错误等
             console.error('❌ Error loading admin config:', error.message);
+
+            // 如果出错，使用空的管理员名单
             this.admins = new Set();
         }
     }
 
+    // ===== 检查用户是否是管理员的方法 =====
+    // 参数 username：要检查的用户名
+    // 返回值：true（是管理员）或 false（不是管理员）
     isAdmin(username) {
+        // this.admins.has(username)：检查 Set 中是否包含这个用户名
+        // 例如：this.admins = Set(['admin', 'Ruence'])
+        //      isAdmin('admin') -> true
+        //      isAdmin('user123') -> false
         return this.admins.has(username);
     }
 
+    // ===== 获取管理员名单的方法 =====
+    // 返回值：管理员名单数组
     getAdminList() {
+        // Array.from(this.admins)：将 Set 转换为数组
+        // 为什么要转换？因为很多 JavaScript 操作需要数组格式
         return Array.from(this.admins);
     }
 
+    // ===== 重新加载管理员名单的方法 =====
+    // 当配置文件修改后，调用这个方法重新加载
     reloadAdmins() {
+        // 直接调用 loadAdmins() 方法
         this.loadAdmins();
     }
 
+    // ===== 监听配置文件变化的方法 =====
+    // 当 admins.json 文件被修改时，自动重新加载管理员名单
+    // 这样管理员就可以在不重启服务器的情况下修改管理员名单
     watchAdminFile() {
-        // Reload admins automatically when the config file changes
+        // ===== 检查是否已经在监听 =====
+        // 如果已经在监听，直接返回，避免重复监听
         if (this.watcher) return;
 
+        // try-catch：错误处理
         try {
+            // ===== 开始监听文件 =====
+            // fs.watch()：监听文件或目录的变化
+            // 参数1：要监听的文件路径
+            // 参数2：回调函数，当文件变化时执行
             this.watcher = fs.watch(ADMIN_CONFIG_PATH, (eventType) => {
+                // eventType：事件类型
+                // 'change'：文件内容被修改
+                // 'rename'：文件被重命名或删除
                 if (eventType === 'change') {
+                    // ===== 文件被修改，重新加载管理员名单 =====
                     console.log('🔄 Admin config changed, reloading...');
                     this.reloadAdmins();
                 }
             });
 
-            // Allow process to exit even if watcher is active
+            // ===== 允许进程退出（即使监听器还在运行） =====
+            // this.watcher.unref()：解除对进程的引用
+            // 为什么要这样做？
+            // 如果不调用 unref()，Node.js 进程会一直等待监听器
+            // 调用 unref() 后，如果只剩下监听器在运行，进程可以正常退出
             if (this.watcher?.unref) {
                 this.watcher.unref();
             }
+
         } catch (error) {
+            // ===== 如果监听失败 =====
             console.error('❌ Failed to watch admin config file:', error.message);
         }
     }
 }
 
+// ===== 导出 AdminHelper 的单例 =====
+// new AdminHelper()：创建一个 AdminHelper 实例
+// module.exports：导出这个实例
+// 为什么导出实例而不是类？
+// 因为我们只需要一个管理员辅助对象（单例模式）
+// 这样整个应用程序共享同一个管理员名单和监听器
 module.exports = new AdminHelper();
