@@ -9,3 +9,7 @@ yarn-debug.log*
 pnpm-debug.log*
 .claude
 .spec-workflow/
+.vscode/
+
+# Accidental Windows/WSL artifacts
+nul
