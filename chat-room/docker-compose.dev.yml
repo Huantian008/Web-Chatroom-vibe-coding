@@ -1,0 +1,85 @@
+# Development Docker Compose
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: chat-room-mongodb-dev
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: dev_password
+      MONGO_INITDB_DATABASE: chatroom
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - chat-network
+
+  # Backend API (with hot reload)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: chat-room-backend-dev
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGODB_URI: mongodb://admin:dev_password@mongodb:27017/chatroom?authSource=admin
+      JWT_SECRET: dev_secret_key_change_in_production
+      AI_SERVICE_URL: http://ai-service:5000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      - mongodb
+    networks:
+      - chat-network
+    command: npm run dev
+
+  # AI Service (with hot reload)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile.dev
+    container_name: chat-room-ai-service-dev
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      FLASK_ENV: development
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./ai-service:/app
+    networks:
+      - chat-network
+
+  # Frontend (with hot reload)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: chat-room-frontend-dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
+    networks:
+      - chat-network
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  chat-network:
+    driver: bridge

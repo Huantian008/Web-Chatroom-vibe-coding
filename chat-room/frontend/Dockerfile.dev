@@ -1,0 +1,16 @@
+# Development Dockerfile for Frontend
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy files
+COPY *.html *.css *.js ./
+
+# Install simple HTTP server for development
+RUN npm install -g http-server
+
+# Expose port
+EXPOSE 8080
+
+# Start HTTP server with watch mode
+CMD ["http-server", "-p", "8080", "-c-1", "--cors"]

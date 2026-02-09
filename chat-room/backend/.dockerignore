@@ -1,0 +1,18 @@
+# Docker ignore patterns for Backend
+node_modules
+npm-debug.log
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+tests
+coverage
+.git
+.gitignore
+README.md
+.vscode
+.idea
+*.md
+!README.md

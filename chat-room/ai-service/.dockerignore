@@ -1,0 +1,20 @@
+# Docker ignore patterns for AI Service
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.env
+.env.local
+.git
+.gitignore
+.pytest_cache
+.coverage
+htmlcov
+.vscode
+.idea
+*.md
+test_*.py
