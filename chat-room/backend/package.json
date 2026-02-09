@@ -6,7 +6,9 @@
     "scripts": {
         "start": "node server.js",
         "dev": "node server.js",
-        "init-db": "node scripts/initDatabase.js"
+        "init-db": "node scripts/initDatabase.js",
+        "test": "jest",
+        "test:watch": "jest --watch"
     },
     "keywords": [
         "chat",
@@ -24,5 +26,11 @@
         "jsonwebtoken": "^9.0.2",
         "mongoose": "^9.0.0",
         "socket.io": "^4.6.1"
+    },
+    "devDependencies": {
+        "jest": "^30.2.0",
+        "mongodb-memory-server": "^10.1.4",
+        "socket.io-client": "^4.8.3",
+        "supertest": "^7.2.2"
     }
 }

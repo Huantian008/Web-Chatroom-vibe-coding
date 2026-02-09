@@ -60,18 +60,34 @@ const io = socketIo(server, {
 
 // cors()：允许跨域请求
 // 为什么需要？因为前端（localhost:8080）和后端（localhost:3000）是不同的域名
-app.use(cors());
+app.use(cors({
+    origin: process.env.CORS_ORIGIN || "*",
+    credentials: true
+}));
 
 // express.json()：解析 JSON 格式的请求体
 // 这样我们才能从 req.body 中获取前端发送的数据
 app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        service: 'Chat Room Backend',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 
 // ===== 连接到 MongoDB 数据库 =====
 connectDB();
 
 // ===== 初始化敏感词缓存 =====
 // 启动服务器时就加载敏感词，不用等到第一次检查时才加载
-updateFilterCache();
+// 但在测试环境中跳过，避免超时问题
+if (process.env.NODE_ENV !== 'test') {
+    updateFilterCache();
+}
 
 // ===== 定义常量 =====
 
@@ -687,13 +703,13 @@ const PORT = process.env.PORT || 3000;
 // server.listen()：让服务器开始监听指定端口
 // 参数1：端口号
 // 参数2：回调函数，服务器启动后执行
-server.listen(PORT, () => {
-    // ===== 打印启动信息 =====
-    console.log(`🚀 Chat server running on port ${PORT}`);
-    console.log(`📡 WebSocket server is ready for connections`);
-    console.log(`🤖 AI Service URL: ${AI_SERVICE_URL}`);
-    console.log(`👑 Admins: ${adminHelper.getAdminList().join(', ') || 'None'}`);
-    // adminHelper.getAdminList()：获取管理员列表
-    // .join(', ')：用逗号连接管理员名字
-    // || 'None'：如果没有管理员，显示 'None'
-});
+module.exports = { app, server };
+
+if (require.main === module) {
+    server.listen(PORT, () => {
+        console.log(`🚀 Chat server running on port ${PORT}`);
+        console.log(`📡 WebSocket server is ready for connections`);
+        console.log(`🤖 AI Service URL: ${AI_SERVICE_URL}`);
+        console.log(`👑 Admins: ${adminHelper.getAdminList().join(', ') || 'None'}`);
+    });
+}

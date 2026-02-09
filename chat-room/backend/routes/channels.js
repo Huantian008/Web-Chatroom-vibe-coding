@@ -254,7 +254,58 @@ router.post('/:channelId/leave', verifyToken, async (req, res) => {
     }
 });
 
-// ===== 路由6：获取频道的历史消息 =====
+// ===== 路由6：发送消息到频道 =====
+// POST /api/channels/:channelId/messages
+// 这个接口用于向频道发送新消息
+router.post('/:channelId/messages', verifyToken, async (req, res) => {
+    try {
+        // ===== 获取频道ID和消息内容 =====
+        const { channelId } = req.params;
+        const { message } = req.body;
+
+        // ===== 验证消息内容不能为空 =====
+        if (!message || message.trim().length === 0) {
+            return res.status(400).json({ error: '消息内容不能为空' });
+        }
+
+        // ===== 验证用户是否是频道成员 =====
+        const membership = await ChannelMember.findOne({
+            userId: req.user.userId,
+            channelId
+        });
+
+        if (!membership) {
+            return res.status(403).json({ error: '您不是该频道成员' });
+        }
+
+        // ===== 创建并保存消息 =====
+        const newMessage = new Message({
+            username: req.user.username,
+            userId: req.user.userId,
+            message: message.trim(),
+            channelId,
+            messageType: 'user'
+        });
+
+        await newMessage.save();
+
+        // ===== 返回创建的消息 =====
+        res.status(201).json({
+            id: newMessage._id,
+            username: newMessage.username,
+            message: newMessage.message,
+            timestamp: newMessage.timestamp,
+            channelId: newMessage.channelId,
+            messageType: newMessage.messageType
+        });
+
+    } catch (error) {
+        console.error('Send message error:', error);
+        res.status(500).json({ error: '发送消息失败' });
+    }
+});
+
+// ===== 路由7：获取频道的历史消息 =====
 // GET /api/channels/:channelId/messages
 // 这个接口用于获取某个频道的历史消息
 // 可以通过 limit 参数指定获取多少条消息（默认100条）

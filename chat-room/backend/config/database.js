@@ -11,6 +11,15 @@ const connectDB = async () => {
     // try-catch 是错误处理机制
     // try 里放我们要执行的代码，如果出错了就会跳到 catch 里
     try {
+        // ===== 检查是否已经有活动连接 =====
+        // 在测试环境中，测试框架可能已经建立了连接
+        // mongoose.connection.readyState 返回连接状态：
+        //   0 = 断开连接, 1 = 已连接, 2 = 正在连接, 3 = 正在断开
+        if (mongoose.connection.readyState === 1) {
+            console.log(`✅ MongoDB Already Connected: ${mongoose.connection.host}`);
+            return; // 如果已连接，直接返回，不再重复连接
+        }
+
         // ===== 获取数据库连接地址 =====
         // process.env.MONGODB_URI 是从环境变量中读取数据库地址（生产环境用）
         // || 是"或"运算符，如果左边不存在，就用右边的默认值
@@ -38,11 +47,19 @@ const connectDB = async () => {
         // error.message 是错误的具体描述信息
         console.error(`❌ MongoDB Connection Error: ${error.message}`);
 
-        // ===== 退出程序 =====
-        // process.exit(1) 会终止 Node.js 程序
-        // 参数 1 表示程序因错误退出（0 表示正常退出）
-        // 为什么要退出？因为没有数据库，程序无法正常运行
-        process.exit(1);
+        // ===== 退出程序（仅在非测试环境） =====
+        // process.env.NODE_ENV 可以判断当前运行环境
+        // 在测试环境中不应该调用 process.exit(1)，因为会终止测试进程
+        // 而是应该抛出错误，让测试框架处理
+        if (process.env.NODE_ENV !== 'test') {
+            // process.exit(1) 会终止 Node.js 程序
+            // 参数 1 表示程序因错误退出（0 表示正常退出）
+            // 为什么要退出？因为没有数据库，程序无法正常运行
+            process.exit(1);
+        } else {
+            // 在测试环境中，抛出错误而不是退出进程
+            throw error;
+        }
     }
 };
 
