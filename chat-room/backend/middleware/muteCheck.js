@@ -71,7 +71,7 @@ const checkMuteStatus = async (userId, username) => {
             console.log(`✅ Auto-unmuted user: ${username}`);
 
             // 返回：用户没有被禁言
-            return { isMuted: false };
+            return { isMuted: false, reason: null, isGlobal: false };
         }
 
         // ===== 如果禁言未过期，返回禁言信息 =====
@@ -85,7 +85,7 @@ const checkMuteStatus = async (userId, username) => {
 
     // ===== 如果用户没有被禁言 =====
     // 返回：用户没有被禁言
-    return { isMuted: false };
+    return { isMuted: false, reason: null, isGlobal: false };
 };
 
 // ===== 导出函数 =====
