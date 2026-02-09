@@ -7,7 +7,8 @@ const { createApp } = Vue;
 // ===== 定义后端 API 的基础地址 =====
 // 所有的 HTTP 请求都会使用这个地址作为前缀
 // 例如：登录接口 = http://localhost:3000/api/auth/login
-const API_URL = 'http://localhost:3000';
+// 支持通过环境变量配置（Docker 部署时使用）
+const API_URL = window.API_URL || 'http://localhost:3000';
 
 // ===== 创建 Vue 应用 =====
 // createApp()：创建一个新的 Vue 应用实例
@@ -49,6 +50,9 @@ createApp({
             stopTypingTimeout: null,       // 停止输入的定时器（1.8秒无输入后发送停止事件）
             isTyping: false,               // 当前用户是否正在输入
             avatarColors: {},              // 用户头像颜色缓存
+
+            // ===== 移动端状态（Mobile state） =====
+            showMobileNav: false,          // 是否显示移动端导航
                                            // 格式：{ 'username': 'linear-gradient(...)' }
                                            // 为什么要缓存？避免每次渲染都重新生成渐变色
 
@@ -86,6 +90,20 @@ createApp({
     // 包含所有组件的方法（函数）
     // 这些方法可以在模板中调用，也可以在其他方法中调用
     methods: {
+        // ============================================================
+        // ===== 移动端导航方法（Mobile Nav methods） =====
+        // ============================================================
+
+        // ===== 切换移动端导航 =====
+        toggleMobileNav() {
+            this.showMobileNav = !this.showMobileNav;
+        },
+
+        // ===== 关闭移动端导航 =====
+        closeMobileNav() {
+            this.showMobileNav = false;
+        },
+
         // ============================================================
         // ===== 认证相关方法（Auth methods） =====
         // ============================================================

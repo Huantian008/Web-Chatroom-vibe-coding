@@ -258,10 +258,82 @@
                     </div>
                 </aside>
 
+                <!-- ===== 移动端导航遮罩层 ===== -->
+                <!-- v-if="showMobileNav"：只有当 showMobileNav 为 true 时才显示 -->
+                <!-- @click="closeMobileNav"：点击遮罩层关闭导航 -->
+                <div class="mobile-nav-backdrop" v-if="showMobileNav" @click="closeMobileNav"></div>
+
+                <!-- ===== 移动端侧边导航 ===== -->
+                <!-- :class="{ open: showMobileNav }"：当 showMobileNav 为 true 时添加 open 类 -->
+                <aside class="mobile-nav-panel" :class="{ open: showMobileNav }">
+                    <!-- 移动端导航头部 -->
+                    <div class="mobile-nav-header">
+                        <div class="nav-title">Lumina HQ</div>
+                        <!-- 关闭按钮 -->
+                        <button class="icon-btn" @click="closeMobileNav">
+                            <i class="ph ph-x"></i>
+                        </button>
+                    </div>
+
+                    <!-- 用户信息块 -->
+                    <div class="user-block">
+                        <div class="avatar" :style="{ backgroundImage: getAvatarColor(username) }">
+                            {{ initials(username) }}
+                        </div>
+                        <div class="user-meta">
+                            <div class="user-name">{{ username }}</div>
+                            <div class="user-sub">保持沟通，随时在线</div>
+                        </div>
+                        <button class="ghost-btn" @click="logout">退出</button>
+                    </div>
+
+                    <!-- 频道列表 -->
+                    <div class="section">
+                        <div class="section-title">频道</div>
+                        <div class="channel-list">
+                            <button
+                                v-for="channel in channels"
+                                :key="channel.id"
+                                class="channel-row"
+                                :class="{ active: currentChannelId === channel.id }"
+                                @click="switchChannel(channel.id, channel.name, channel.description); closeMobileNav()"
+                            >
+                                <div class="channel-meta">
+                                    <span class="hash">#</span>
+                                    <div>
+                                        <div class="channel-name">{{ channel.name }}</div>
+                                        <div class="channel-desc">{{ channel.description || '随便聊聊' }}</div>
+                                    </div>
+                                </div>
+                                <span class="pill" v-if="channel.isDefault">默认</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 可加入的频道 -->
+                    <div class="section" v-if="availableChannels.length">
+                        <div class="section-title">可加入的频道</div>
+                        <div class="join-list">
+                            <div class="join-row" v-for="channel in availableChannels" :key="channel.id">
+                                <div>
+                                    <div class="channel-name">{{ channel.name }}</div>
+                                    <div class="channel-desc muted">{{ channel.description || '欢迎加入讨论' }}</div>
+                                </div>
+                                <button class="pill primary" @click="joinChannel(channel); closeMobileNav()">加入</button>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
                 <!-- ===== 主聊天区域 ===== -->
                 <main class="chat-surface">
                     <!-- ===== 聊天头部 ===== -->
                     <header class="chat-header">
+                        <!-- ===== 移动端汉堡菜单按钮 ===== -->
+                        <!-- 只在小屏幕上显示（通过 CSS 控制） -->
+                        <button class="hamburger-btn" @click="toggleMobileNav">
+                            <i class="ph ph-list"></i>
+                        </button>
                         <div>
                             <!-- 小标题 -->
                             <div class="eyebrow">频道</div>

@@ -644,4 +644,118 @@ button {
   .nav-panel {
     display: none;
   }
+
+  /* Hamburger button - visible on mobile */
+  .hamburger-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    margin-right: 12px;
+  }
+
+  .hamburger-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  /* Mobile nav backdrop */
+  .mobile-nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 998;
+    animation: fadeIn 0.2s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* Mobile nav panel */
+  .mobile-nav-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 100vh;
+    background: var(--nav-bg);
+    color: #e5e7eb;
+    z-index: 999;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .mobile-nav-panel.open {
+    transform: translateX(0);
+  }
+
+  .mobile-nav-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .mobile-nav-header .icon-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e5e7eb;
+  }
+
+  .mobile-nav-header .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  /* Adjust chat header for mobile */
+  .chat-header {
+    flex-wrap: wrap;
+    padding: 16px;
+    gap: 8px;
+  }
+
+  .chat-title {
+    font-size: 18px;
+  }
+
+  .chat-subtitle {
+    font-size: 13px;
+  }
+
+  .chat-actions {
+    order: -1;
+    width: 100%;
+    justify-content: flex-end;
+    margin-bottom: 8px;
+  }
 }
+
+/* Hide hamburger on larger screens */
+@media (min-width: 901px) {
+  .hamburger-btn {
+    display: none;
+  }
+
+  .mobile-nav-backdrop,
+  .mobile-nav-panel {
+    display: none !important;
+  }
+}
+
