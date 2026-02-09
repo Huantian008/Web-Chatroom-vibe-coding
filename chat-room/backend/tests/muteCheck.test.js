@@ -7,20 +7,31 @@ const GlobalMuteStatus = require('../models/GlobalMuteStatus');
 let mongoServer;
 
 beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = await MongoMemoryServer.create({
+        instance: { launchTimeout: 60000 }
+    });
     const mongoUri = mongoServer.getUri();
     await mongoose.connect(mongoUri);
 });
 
 afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    try {
+        if (mongoose.connection.readyState !== 0) {
+            await mongoose.disconnect();
+        }
+    } finally {
+        if (mongoServer) {
+            await mongoServer.stop();
+        }
+    }
 });
 
 afterEach(async () => {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        await collections[key].deleteMany({});
+    if (mongoose.connection.readyState === 1) {
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
     }
 });
 

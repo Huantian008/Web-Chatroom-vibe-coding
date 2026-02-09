@@ -8,7 +8,9 @@ let mongoServer;
 let adminUserId;
 
 beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = await MongoMemoryServer.create({
+        instance: { launchTimeout: 60000 }
+    });
     const mongoUri = mongoServer.getUri();
     await mongoose.connect(mongoUri);
 
@@ -19,20 +21,31 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
+    try {
+        if (mongoose.connection.readyState !== 0) {
+            await mongoose.disconnect();
+        }
+    } finally {
+        if (mongoServer) {
+            await mongoServer.stop();
+        }
+    }
 });
 
 afterEach(async () => {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        await collections[key].deleteMany({});
+    if (mongoose.connection.readyState === 1) {
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
     }
 
     // Recreate admin user after each test
-    const adminUser = new User({ username: 'admin', password: 'adminpass123', role: 'admin' });
-    await adminUser.save();
-    adminUserId = adminUser._id;
+    if (mongoose.connection.readyState === 1) {
+        const adminUser = new User({ username: 'admin', password: 'adminpass123', role: 'admin' });
+        await adminUser.save();
+        adminUserId = adminUser._id;
+    }
 });
 
 describe('Word Filter Middleware', () => {

@@ -13,7 +13,9 @@ let authToken;
 let adminToken;
 
 beforeAll(async () => {
-    mongoServer = await MongoMemoryServer.create();
+    mongoServer = await MongoMemoryServer.create({
+        instance: { launchTimeout: 60000 }
+    });
     const mongoUri = mongoServer.getUri();
     await mongoose.connect(mongoUri);
 
@@ -40,33 +42,48 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await mongoose.disconnect();
-    await mongoServer.stop();
-    server.close();
+    try {
+        if (mongoose.connection.readyState !== 0) {
+            await mongoose.disconnect();
+        }
+    } finally {
+        if (mongoServer) {
+            await mongoServer.stop();
+        }
+        if (server && typeof server.close === 'function') {
+            await new Promise((resolve) => server.close(resolve));
+        }
+    }
 });
 
 afterEach(async () => {
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        await collections[key].deleteMany({});
+    if (mongoose.connection.readyState === 1) {
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
     }
 
     // Recreate regular test user
-    const res = await request(app)
-        .post('/api/auth/register')
-        .send({ username: 'testuser', password: 'password123' });
-    authToken = res.body.token;
+    if (app) {
+        const res = await request(app)
+            .post('/api/auth/register')
+            .send({ username: 'testuser', password: 'password123' });
+        authToken = res.body.token;
+    }
 
     // Recreate admin user
-    const adminUser = new User({ username: 'admin', password: 'adminpass123', role: 'admin' });
-    await adminUser.save();
+    if (mongoose.connection.readyState === 1) {
+        const adminUser = new User({ username: 'admin', password: 'adminpass123', role: 'admin' });
+        await adminUser.save();
 
-    const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
-    adminToken = jwt.sign(
-        { userId: adminUser._id, username: adminUser.username },
-        JWT_SECRET,
-        { expiresIn: '7d' }
-    );
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+        adminToken = jwt.sign(
+            { userId: adminUser._id, username: adminUser.username },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+    }
 });
 
 describe('Channels API', () => {
